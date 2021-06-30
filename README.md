@@ -187,14 +187,13 @@ The networkhammer.shScript terus memanggil script netperfrunner untuk memberikan
 # tunnelbroker.sh
 The tunnelbroker.shmengkonfigurasi Script OpenWRT untuk membuat sebuah terowongan IPv6 melalui Badai listrik. Ini adalah cara mudah untuk mengenal IPv6 jika ISP Anda tidak menawarkan kemampuan IPv6 asli. Ada beberapa langkah:
 
-Buka situs Hurricane Electric TunnelBroker.net untuk menyiapkan akun gratis Anda. Ada instruksi terperinci untuk menyiapkan akun dan terowongan IPv6 di skrip itu sendiri, atau di halaman Terowongan IPv6 dari bufferbloat.net
-Dari halaman utama tunnelbroker, klik "Buat Terowongan Reguler"
-Masukkan alamat IP Anda di "IPv4 Endpoint" (tempel di alamat yang Anda "lihat dari")
-Pilih Server Terowongan terdekat
-Klik "Buat Terowongan"
-Pada halaman Detail Tunnel yang dihasilkan, klik Tetapkan /48 untuk mendapatkan awalan /48
-
-Dari halaman Detail Tunnel, salin dan tempel nilai yang cocok ke dalam tunnel.shfile. The USER_NAME adalah nama yang digunakan untuk membuat account. Temukan Update_Key pada Tab Lanjutan pada halaman Detail Tunnel.
+. Buka situs Hurricane Electric TunnelBroker.net untuk menyiapkan akun gratis Anda. Ada instruksi terperinci untuk menyiapkan akun dan terowongan IPv6 di skrip itu sendiri, atau di halaman Terowongan IPv6 dari bufferbloat.net
+. Dari halaman utama tunnelbroker, klik "Buat Terowongan Reguler"
+. Masukkan alamat IP Anda di "IPv4 Endpoint" (tempel di alamat yang Anda "lihat dari")
+. Pilih Server Terowongan terdekat
+. Klik "Buat Terowongan"
+. Pada halaman Detail Tunnel yang dihasilkan, klik Tetapkan /48 untuk mendapatkan awalan /48
+. Dari halaman Detail Tunnel, salin dan tempel nilai yang cocok ke dalam tunnel.shfile. The USER_NAME adalah nama yang digunakan untuk membuat account. Temukan Update_Key pada Tab Lanjutan pada halaman Detail Tunnel.
 
 ssh ke router dan jalankan skrip ini dengan langkah-langkah ini.
 
