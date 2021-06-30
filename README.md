@@ -1,144 +1,185 @@
-# OpenWrtScript
-
 OpenWrtScripts
-Ini adalah satu set skrip (terkadang juga disebut "Openscripts") yang melaporkan, mengonfigurasi, dan mengukur (dan meningkatkan) latensi di router rumah (dan di mana pun!) Skrip ini berfungsi sama baiknya untuk LEDE dan OpenWrt dan mencakup:
+==============
 
-. getstats.sh - skrip untuk mengumpulkan informasi pemecahan masalah yang membantu mendiagnosis masalah dalam distribusi OpenWrt.
+This is a set of scripts (sometimes also called "Openscripts") that report, configure and measure (and improve) latency in home routers (and everywhere else!) 
+These scripts work equally well for both [LEDE](https://lede-project.org) and [OpenWrt](https://openwrt.org) and include:
 
-. opkgscript.sh - skrip untuk menyimpan daftar paket yang saat ini diinstal (katakanlah, sebelum sysupgrade), dan kemudian mengembalikan set lengkap paket setelah peningkatan.
+* [getstats.sh](#getstatssh) - a script to collect troubleshooting information that helps to diagnose problems in the OpenWrt distribution.
 
-. config-openwrt.sh - skrip untuk mengkonfigurasi router OpenWrt secara konsisten setelah mem-flash firmware pabrik.
+* [opkgscript.sh](#opkgscriptsh) - a script to save the list of 
+currently-installed packages (say, before a sysupgrade), 
+and then restore the full set of packages after the upgrade.
 
-. betterspeedtest.sh & netperfrunner.sh & networkhammer.sh - script yang mengukur kinerja beban router atau penawaran Anda ke jaringan untuk pengujian.
+* [config-openwrt.sh](#config-openwrtsh) - a script to configure the OpenWrt router consistently after flashing factory firmware.
 
-. idlelatency.sh - skrip untuk mengukur latensi "jalur menganggur" tanpa pembuatan lalu lintas tambahan dari skrip.
+* [betterspeedtest.sh](#betterspeedtestsh) & [netperfrunner.sh](#netperfrunnersh) & [networkhammer.sh](#networkhammersh) - scripts that measure the performance of your router or offer load to the network for testing.
 
-. tunnelbroker.sh - skrip untuk menyiapkan terowongan IPv6 6-in-4 ke TunnelBroker.net.
+* [idlelatency.sh](#idlelatencysh) - a script to measure the latency of an "idle line" without any additional traffic generation from the script.
 
-Script ini dapat disimpan dalam /usr/lib/OpenWrtScriptsdirektori. Cara termudah untuk melakukannya adalah dengan menggunakan ssh ke router dan masukkan perintah ini:
+* [tunnelbroker.sh](#tunnelbrokersh) - a script to set up a IPv6 6-in-4 tunnel to TunnelBroker.net. 
 
+These scripts can be saved in the `/usr/lib/OpenWrtScripts` directory. 
+The easiest way to do this is to use ssh into the router and enter these commands:
+
+```
 opkg update
 opkg install netperf
 opkg install git
 cd /usr/lib
 git clone git://github.com/richb-hanover/OpenWrtScripts.git
+```
+---
+## [getstats.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/getstats.sh)
 
+The `getstats.sh` script helps diagnose problems with OpenWrt. 
+If you report a problem, it is always helpful to include the output of this script. 
 
+`getstats.sh` executes a built-in set of commands and writes the collected output to `/tmp/openwrtstats.txt`. 
+The script also executes commands passed as arguments on the command line.
+It also displays a list of user-installed opkg packages - that is those not installed by default. 
+In the example below, the output would contain results from the standard set of commands plus the two additional arguments: 
 
-# getstats.sh
-getstats.sh Script membantu masalah diagnosa dengan OpenWRT. Jika Anda melaporkan masalah, selalu membantu untuk menyertakan output dari skrip ini.
+**Usage:** `sh getstats.sh "ls /usr/lib" "ls -al /etc/config"`
 
-getstats.shmengeksekusi satu set perintah bawaan dan menulis output yang dikumpulkan ke /tmp/openwrtstats.txt. Script juga mengeksekusi perintah yang diteruskan sebagai argumen pada baris perintah. Ini juga menampilkan daftar paket opkg yang diinstal pengguna - yaitu paket yang tidak diinstal secara default. Pada contoh di bawah, output akan berisi hasil dari kumpulan perintah standar ditambah dua argumen tambahan:
+**To install and run this script:** The script is self-contained, and can be placed in any directory. 
+Read the top of the [getstats.sh](./getstats.sh) file for a simple procedure for using the script. 
 
-Pemakaian: sh getstats.sh "ls /usr/lib" "ls -al /etc/config"
+**Sample output file:** See a sample output file - [openwrtstats.txt](./sample_output/openwrtstats.txt)
 
-Untuk menginstal dan menjalankan skrip ini: Skrip ini mandiri, dan dapat ditempatkan di direktori mana pun. Baca bagian atas file getstats.sh untuk prosedur sederhana dalam menggunakan skrip.
+---
+## [opkgscript.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/opkgscript.sh)
 
-Contoh file keluaran: Lihat contoh file keluaran - openwrtstats.txt
+The `opkgscript.sh` script helps to restore the current set of packages after a sysupgrade 
+or even a clean install of either LEDE or OpenWrt. 
+By default, the `write` command saves the list of installed packages in 
+`/etc/config/opkg.installed` (where it will be preserved across sysupgrades), and the 
+`install` command reads the file, to restore that set of packages. 
+Cloned from Malte Forkel's [original script.](https://forum.openwrt.org/viewtopic.php?pid=194478#p194478)
 
-# opkgscript.sh
-opkgscript.shScript membantu untuk mengembalikan set saat paket setelah sysupgrade atau bahkan instalasi yang bersih baik Lede atau OpenWRT. Secara default, writeperintah menyimpan daftar paket yang diinstal /etc/config/opkg.installed( di mana itu akan disimpan di seluruh sysupgrades), dan installperintah membaca file, untuk memulihkan set paket itu. Kloning dari skrip asli Malte Forkel .
+**Usage:** 
 
-Pemakaian:
+`sh opkgscript.sh write` _use before sysupgrade to save the current set of packages_
 
-sh opkgscript.sh write gunakan sebelum sysupgrade untuk menyimpan set paket saat ini
+`sh opkgscript.sh install` _use after successful sysupgrade, to restore those packages_
 
-sh opkgscript.sh install gunakan setelah sysupgrade berhasil, untuk memulihkan paket-paket itu
+`sh opkgscript.sh help` _display full help information for the script_
 
-sh opkgscript.sh help tampilkan informasi bantuan lengkap untuk skrip
+---
+## [config-openwrt.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/config-openwrt.sh)
 
-# config-openwrt.sh
-config-openwrt.shScript update pengaturan pabrik OpenWRT ke konfigurasi dikenal baik-baik. Jika Anda sering memperbarui firmware, Anda dapat menggunakan skrip ini untuk mengonfigurasi ulang router ke kondisi yang konsisten. Anda harus membuat salinan skrip ini, menyesuaikannya dengan kebutuhan Anda, kemudian menggunakan prosedur "Untuk menjalankan skrip ini" (di bawah).
+The `config-openwrt.sh` script updates the factory settings of OpenWrt to a known-good configuration.
+If you frequently update your firmware, you can use this script to reconfigure
+the router to a consistent state.
+You should make a copy of this script, customize it to your needs,
+then use the "To run this script" procedure (below).
 
-Skrip ini dirancang untuk mengonfigurasi pengaturan setelah flash firmware "pabrik" awal. Ada bagian di bawah ini untuk mengonfigurasi banyak aspek router Anda. Semua bagian dikomentari. Ada bagian untuk:
+This script is designed to configure the settings after an initial "factory" firmware flash. 
+There are sections below to configure many aspects of your router.
+All the sections are commented out. There are sections for:
 
-Siapkan antarmuka WAN untuk terhubung ke penyedia Anda
-. Perbarui paket perangkat lunak
-. Perbarui kata sandi root
-. Setel zona waktu
-. Aktifkan SNMP untuk pemantauan dan pengukuran lalu lintas
-. Aktifkan mDNS/ZeroConf pada antarmuka WAN
-. Atur parameter SQM (Smart Queue Management)
-[ Catatan: item yang tersisa belum dikonversi untuk berfungsi di OpenWrt ]
+- Set up the WAN interface to connect to your provider
+- Update the software packages
+- Update the root password
+- Set the time zone
+- Enable SNMP for traffic monitoring and measurements
+- Enable mDNS/ZeroConf on the WAN interface 
+- Set the SQM (Smart Queue Management) parameters
 
-. Aktifkan ekspor NetFlow untuk analisis lalu lintas
-. Ubah alamat IP dan subnet default untuk antarmuka
-. Ubah nama DNS default
-. Setel saluran radio
-. Setel nama SSID nirkabel
-. Setel kredensial keamanan nirkabel]_
-Untuk menjalankan skrip ini
+_[ Note: the remaining items have not been converted to work on OpenWrt yet ]_
 
-Flash router dengan firmware pabrik. Kemudian telnet/ssh masuk dan jalankan pernyataan ini. Anda harus melakukan ini melalui koneksi kabel karena beberapa perubahan ini dapat mengatur ulang jaringan nirkabel.
+- Enable NetFlow export for traffic analysis
+- Change default IP addresses and subnets for interfaces
+- Change default DNS names
+- Set the radio channels
+- Set wireless SSID names
+- Set the wireless security credentials]_
 
-ssh root@192.168.1.1
-cd /tmp
-cat > config.sh 
-[paste in the contents of this file, then hit ^D]
-sh config.sh
-Presto! (You should reboot the router when this completes.)
-Catatan: Jika Anda menggunakan router OpenWrt sekunder, Anda dapat membuat salinan lain dari skrip ini, dan menggunakannya untuk mengatur parameter konfigurasi yang berbeda (mungkin subnet yang berbeda, saluran radio, SSID, mengaktifkan mDNS, dll).
+**To run this script**
 
-# betterspeedtest.sh
-betterspeedtest.sh Script mengemulasi tes berbasis web yang dilakukan oleh speedtest.net, tetapi apakah itu yang lebih baik. Saat skrip melakukan pengunduhan dan pengunggahan ke server di Internet, skrip ini secara bersamaan mengukur latensi ping untuk melihat apakah transfer file memengaruhi respons jaringan Anda.
+Flash the router with factory firmware. Then telnet/ssh in and execute these statements. 
+You should do this over a wired connection because some of these changes
+may reset the wireless network.
 
-Inilah mengapa itu penting: Jika transfer data meningkatkan latensi/lag banyak, maka aktivitas jaringan lain, seperti obrolan suara atau video, permainan, dan aktivitas jaringan umum juga akan bekerja dengan buruk. Gamer akan melihat ini sebagai ketertinggalan ketika orang lain menggunakan jaringan. Skype dan FaceTime akan melihat putus atau macet. Latensi buruk, dan router yang baik tidak akan membiarkannya terjadi.
+    ssh root@192.168.1.1
+    cd /tmp
+    cat > config.sh 
+    [paste in the contents of this file, then hit ^D]
+    sh config.sh
+    Presto! (You should reboot the router when this completes.)
 
-Skrip betterspeedtest.sh mengukur latensi selama transfer file. Untuk memanggilnya:
+**Note:** If you use a secondary OpenWrt router, you can create another copy of this script, and use it to set different configuration parameters (perhaps different subnets, radio channels, SSIDs, enable mDNS, etc).  
 
-sh betterspeedtest.sh [ -4 | -6 ] [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [ -i ] [ -n simultaneous-streams ]
-Opsi, jika ada, adalah:
+---
+## [betterspeedtest.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/betterspeedtest.sh)
 
-. -H | --host: DNS atau Alamat server netperf (default - netperf.bufferbloat.net)
-Server alternatif adalah netperf-east (pantai timur AS), netperf-west (California), dan netperf-eu (Denmark)
-. -4 | -6: Aktifkan pengujian ipv4 atau ipv6 (default - ipv4)
-. -t | --time: Durasi untuk berapa lama pengujian setiap arah harus dijalankan - (default - 60 detik)
-. -p | --ping: Host ke ping untuk mengukur latensi (default - gstatic.com)
-. -i | --idle: Jangan mengirim lalu lintas, hanya ukur latensi menganggur
-. -n | --number: Jumlah sesi simultan (default - 5 sesi)
-Outputnya menunjukkan kecepatan unduh dan unggah terpisah (satu arah), bersama dengan ringkasan latensi, termasuk persentil min, maks, rata-rata, median, dan 10 dan 90 sehingga Anda bisa memahami distribusinya. Alat ini juga menampilkan persentase kehilangan paket. Contoh di bawah ini menunjukkan dua pengukuran, buruk dan baik.
+The `betterspeedtest.sh` script emulates the web-based test performed by speedtest.net, but does it one better. While script performs a download and an upload to a server on the Internet, it simultaneously measures latency of pings to see whether the file transfers affect the responsiveness of your network. 
 
-Pengujian Idle menggunakan proses yang sama untuk mengukur latensi saluran, tetapi tanpa lalu lintas tambahan apa pun dari skrip ini. Ini berjalan untuk --time yang ditentukan.
+Here's why that's important: If the data transfers do increase the latency/lag much, then other network activity, such as voice or video chat, gaming, and general network activity will also work poorly. Gamers will see this as lagging out when someone else uses the network. Skype and FaceTime will see dropouts or freezes. Latency is bad, and good routers will not allow it to happen.
 
-Di sebelah kiri adalah uji coba tanpa SQM. Perhatikan bahwa latensi menjadi besar (lebih dari 5 detik), artinya kinerja jaringan akan buruk bagi siapa pun yang menggunakan jaringan.
+The betterspeedtest.sh script measures latency during file transfers. To invoke it:
 
-Di sebelah kanan adalah tes menggunakan SQM: latency naik sedikit (kurang dari 23 msec di bawah beban), dan kinerja jaringan tetap baik.
+    sh betterspeedtest.sh [ -4 | -6 ] [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [ -i ] [ -n simultaneous-streams ]
 
-Example with NO SQM - BAD                                     Example using SQM - GOOD
+Options, if present, are:
 
-root@openwrt:/usr/lib/OpenWrtScripts# sh betterspeedtest.sh   root@openwrt:/usr/lib/OpenWrtScripts# sh betterspeedtest.sh
-[date/time] Testing against netperf.bufferbloat.net (ipv4)    [date/time] Testing against netperf.bufferbloat.net (ipv4)
-   with 5 simultaneous sessions while pinging gstatic.com        with 5 simultaneous sessions while pinging gstatic.com
-   (60 seconds in each direction)                                (60 seconds in each direction)
+* -H | --host: DNS or Address of a netperf server (default - netperf.bufferbloat.net)  
+Alternate servers are netperf-east (east coast US), netperf-west (California), 
+and netperf-eu (Denmark)
+* -4 | -6:     Enable ipv4 or ipv6 testing (default - ipv4)
+* -t | --time: Duration for how long each direction's test should run - (default - 60 seconds)
+* -p | --ping: Host to ping to measure latency (default - gstatic.com)
+* -i | --idle: Don't send traffic, only measure idle latency
+* -n | --number: Number of simultaneous sessions (default - 5 sessions)
 
- Download:  6.65 Mbps                                         Download:  6.62 Mbps
-  Latency: (in msec, 58 pings, 0.00% packet loss)              Latency: (in msec, 61 pings, 0.00% packet loss)
-      Min: 43.399                                                  Min: 43.092
-    10pct: 156.092                                               10pct: 43.916
-   Median: 230.921                                              Median: 46.400
-      Avg: 248.849                                                 Avg: 46.575
-    90pct: 354.738                                               90pct: 48.514
-      Max: 385.507                                                 Max: 56.150
+The output shows separate (one-way) download and upload speed, along with a summary of latencies, including min, max, average, median, and 10th and 90th percentiles so you can get a sense of the distribution. The tool also displays the percent packet loss. The example below shows two measurements, bad and good. 
 
-   Upload:  0.72 Mbps                                           Upload:  0.70 Mbps
-  Latency: (in msec, 59 pings, 0.00% packet loss)              Latency: (in msec, 53 pings, 0.00% packet loss)
-      Min: 43.699                                                  Min: 43.394
-    10pct: 352.521                                               10pct: 44.202
-   Median: 4208.574                                             Median: 50.061
-      Avg: 3587.534                                                Avg: 50.486
-    90pct: 5163.901                                              90pct: 56.061
-      Max: 5334.262                                                Max: 69.333
-idlelatency.sh
-The idlelatency.shScript merangkum kali ping diukur selama interval waktu tertentu. Untuk memanggil skrip:
+The Idle test uses the same process to measure latency of the line, but without any additional traffic from this script. It runs for the specified --time. 
 
-sh idlelatency.sh [ -4 | -6 ] [ -t duration ] [ -p host-to-ping ] 
-Opsi, jika ada adalah:
+On the left is a test run without SQM. Note that the latency gets huge (greater than 5 seconds), meaning that network performance would be terrible for anyone else using the network. 
 
--4 | -6: Aktifkan pengujian ipv4 atau ipv6 (default - ipv4)
--t | --time: Durasi untuk berapa lama pengujian setiap arah harus dijalankan - (default - 60 detik)
--p | --ping: Host ke ping untuk mengukur latensi (default - gstatic.com)
-Output dari skrip terlihat seperti ini:
+On the right is a test using SQM: the latency goes up a little (less than 23 msec under load), and network performance remains good.
 
+    Example with NO SQM - BAD                                     Example using SQM - GOOD
+    
+    root@openwrt:/usr/lib/OpenWrtScripts# sh betterspeedtest.sh   root@openwrt:/usr/lib/OpenWrtScripts# sh betterspeedtest.sh
+    [date/time] Testing against netperf.bufferbloat.net (ipv4)    [date/time] Testing against netperf.bufferbloat.net (ipv4)
+       with 5 simultaneous sessions while pinging gstatic.com        with 5 simultaneous sessions while pinging gstatic.com
+       (60 seconds in each direction)                                (60 seconds in each direction)
+    
+     Download:  6.65 Mbps                                         Download:  6.62 Mbps
+      Latency: (in msec, 58 pings, 0.00% packet loss)              Latency: (in msec, 61 pings, 0.00% packet loss)
+          Min: 43.399                                                  Min: 43.092
+        10pct: 156.092                                               10pct: 43.916
+       Median: 230.921                                              Median: 46.400
+          Avg: 248.849                                                 Avg: 46.575
+        90pct: 354.738                                               90pct: 48.514
+          Max: 385.507                                                 Max: 56.150
+    
+       Upload:  0.72 Mbps                                           Upload:  0.70 Mbps
+      Latency: (in msec, 59 pings, 0.00% packet loss)              Latency: (in msec, 53 pings, 0.00% packet loss)
+          Min: 43.699                                                  Min: 43.394
+        10pct: 352.521                                               10pct: 44.202
+       Median: 4208.574                                             Median: 50.061
+          Avg: 3587.534                                                Avg: 50.486
+        90pct: 5163.901                                              90pct: 56.061
+          Max: 5334.262                                                Max: 69.333
+
+---
+## [idlelatency.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/idlelatency.sh)
+
+The `idlelatency.sh` script summarizes ping times measured over a specified time interval. To invoke the script:
+
+    sh idlelatency.sh [ -4 | -6 ] [ -t duration ] [ -p host-to-ping ] 
+    
+Options, if present are:
+
+* -4 | -6: Enable ipv4 or ipv6 testing (default - ipv4)
+* -t | --time: Duration for how long each direction's test should run - (default - 60 seconds)
+* -p | --ping: Host to ping to measure latency (default - gstatic.com)
+
+The output of the script looks like this:
+
+```
 root@openwrt: sh idlelatency.sh
 2020-05-02 12:10:53 Testing idle line while pinging gstatic.com (60 seconds)
 ............................................................
@@ -149,59 +190,88 @@ root@openwrt: sh idlelatency.sh
       Avg: 35.143
     90pct: 45.994
       Max: 50.377
-netperfrunner.sh
-The netperfrunner.shScript menjalankan beberapa perintah netperf secara bersamaan. Ini meniru stress test netperf-wrapper [Github] tetapi tanpa hasil GUI yang bagus.
+```
 
-Saat Anda memulai skrip ini, skrip ini secara bersamaan mengunggah dan mengunduh beberapa aliran (file) ke server di Internet. Ini menempatkan beban berat pada tautan bottleneck jaringan Anda (mungkin koneksi Anda ke Internet), dan memungkinkan Anda mengukur total bandwidth dan latensi tautan selama transfer.
+---         
+## [netperfrunner.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/netperfrunner.sh)
 
-Untuk memanggil skrip:
+The `netperfrunner.sh` script runs several netperf commands simultaneously.
+This mimics the stress test of [netperf-wrapper](https://github.com/tohojo/netperf-wrapper) [Github] but without the nice GUI result.
 
-sh netperfrunner.sh [ -4 | -6 ] [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [-n simultaneous-streams ]
-Opsi, jika ada, adalah:
+When you start this script, it concurrently uploads and downloads several
+streams (files) to a server on the Internet. This places a heavy load 
+on the bottleneck link of your network (probably your connection to the Internet), 
+and lets you measure both the total bandwidth and the latency of the link during the transfers.
 
--H | --host: DNS atau Alamat server netperf (default - netperf.bufferbloat.net)
-Server alternatif adalah netperf-east (pantai timur AS), netperf-west (California), dan netperf-eu (Denmark)
--4 | -6: Aktifkan pengujian ipv4 atau ipv6 (default - ipv4)
--t | --time: Durasi untuk berapa lama pengujian setiap arah harus dijalankan - (default - 60 detik)
--p | --ping: Host ke ping untuk mengukur latensi (default - gstatic.com)
--n | --number: Jumlah sesi simultan (default - 4 sesi)
-Output dari skrip terlihat seperti ini:
+To invoke the script:
 
-root@openwrt:/usr/lib/OpenWrtScripts# sh netperfrunner.sh
-[date/time] Testing netperf.bufferbloat.net (ipv4) with 4 streams down and up 
-    while pinging gstatic.com. Takes about 60 seconds.
-Download:  5.02 Mbps
-  Upload:  0.41 Mbps
- Latency: (in msec, 61 pings, 15.00% packet loss)
-     Min: 44.494
-   10pct: 44.494
-  Median: 66.438
-     Avg: 68.559
-   90pct: 79.049
-     Max: 140.421
-Catatan: Kecepatan unduh dan unggah yang dilaporkan mungkin jauh lebih rendah daripada kecepatan pengenal saluran Anda. Ini bukan bug, juga bukan masalah dengan koneksi internet Anda. Itu karena pesan konfirmasi yang dikirim kembali ke pengirim menghabiskan sebagian besar kapasitas tautan (sebanyak 25%).
+    sh netperfrunner.sh [ -4 | -6 ] [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [-n simultaneous-streams ]
 
-# networkhammer.sh
-The networkhammer.shScript terus memanggil script netperfrunner untuk memberikan beban berat. Ini berjalan selamanya - Ctl-C akan mengganggunya.
+Options, if present, are:
 
-# tunnelbroker.sh
-The tunnelbroker.shmengkonfigurasi Script OpenWRT untuk membuat sebuah terowongan IPv6 melalui Badai listrik. Ini adalah cara mudah untuk mengenal IPv6 jika ISP Anda tidak menawarkan kemampuan IPv6 asli. Ada beberapa langkah:
+* -H | --host: DNS or Address of a netperf server (default - netperf.bufferbloat.net)  
+Alternate servers are netperf-east (east coast US), netperf-west (California), 
+and netperf-eu (Denmark)
+* -4 | -6: Enable ipv4 or ipv6 testing (default - ipv4)
+* -t | --time: Duration for how long each direction's test should run - (default - 60 seconds)
+* -p | --ping: Host to ping to measure latency (default - gstatic.com)
+* -n | --number: Number of simultaneous sessions (default - 4 sessions)
 
-. Buka situs Hurricane Electric TunnelBroker.net untuk menyiapkan akun gratis Anda. Ada instruksi terperinci untuk menyiapkan akun dan terowongan IPv6 di skrip itu sendiri, atau di halaman Terowongan IPv6 dari bufferbloat.net
-. Dari halaman utama tunnelbroker, klik "Buat Terowongan Reguler"
-. Masukkan alamat IP Anda di "IPv4 Endpoint" (tempel di alamat yang Anda "lihat dari")
-. Pilih Server Terowongan terdekat
-. Klik "Buat Terowongan"
-. Pada halaman Detail Tunnel yang dihasilkan, klik Tetapkan /48 untuk mendapatkan awalan /48
-. Dari halaman Detail Tunnel, salin dan tempel nilai yang cocok ke dalam tunnel.shfile. The USER_NAME adalah nama yang digunakan untuk membuat account. Temukan Update_Key pada Tab Lanjutan pada halaman Detail Tunnel.
+The output of the script looks like this:
 
-ssh ke router dan jalankan skrip ini dengan langkah-langkah ini.
+    root@openwrt:/usr/lib/OpenWrtScripts# sh netperfrunner.sh
+    [date/time] Testing netperf.bufferbloat.net (ipv4) with 4 streams down and up 
+        while pinging gstatic.com. Takes about 60 seconds.
+    Download:  5.02 Mbps
+      Upload:  0.41 Mbps
+     Latency: (in msec, 61 pings, 15.00% packet loss)
+         Min: 44.494
+       10pct: 44.494
+      Median: 66.438
+         Avg: 68.559
+       90pct: 79.049
+         Max: 140.421
 
- ssh root@192.168.1.1     # use the address of your router
- cd /tmp
- cat > tunnel.sh 
- [paste in the contents of this file, then hit ^D]
- [edit the script to match your tunnelbroker values]
- sh tunnel.sh
- [Restart your router. This seems to make a difference.]
-Presto! Terowongan Anda sudah habis! Komputer Anda harus mendapatkan alamat IPv6 global, dan harus dapat berkomunikasi langsung dengan perangkat IPv6 di Internet. Untuk mengujinya, coba:ping6 ivp6.google.com
+**Note:** The download and upload speeds reported may be considerably lower than your line's rated speed. This is not a bug, nor is it a problem with your internet connection. That's because the acknowledge messages sent back to the sender consume a significant fraction of the link's capacity (as much as 25%). 
+
+---
+## [networkhammer.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/networkhammer.sh)
+
+
+The `networkhammer.sh` script continually invokes the netperfrunner script to provide a heavy load. It runs forever - Ctl-C will interrupt it. 
+ 
+
+---
+## [tunnelbroker.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/tunnelbroker.sh)
+
+The `tunnelbroker.sh` script configures OpenWrt to create an IPv6 tunnel via Hurricane Electric. 
+It's an easy way to become familiar with IPv6 if your ISP doesn't offer native IPv6 capabilities. 
+There are several steps:
+
+1. Go to the Hurricane Electric [TunnelBroker.net](http://www.tunnelbroker.net/) site to set up your free account. 
+There are detailed instructions for setting up an account and an IPv6 tunnel in the script itself, or at the
+[IPv6 Tunnel page](http://www.bufferbloat.net/projects/cerowrt/wiki/IPv6_Tunnel) of [bufferbloat.net](bufferbloat.net)
+2. From the tunnelbroker main page, click "Create Regular Tunnel"
+  * Enter your IP address in "IPv4 Endpoint" (paste in the address you're "viewing from")
+  * Select a nearby Tunnel Server
+  * Click "Create Tunnel"
+  
+3.  On the resulting Tunnel Details page, click **Assign /48** to get a /48 prefix
+4. From the Tunnel Details page, copy and paste the matching values into the `tunnel.sh` file. 
+The *User\_Name* is the name you used to create the account. 
+Find the *Update\_Key* on the Advanced Tab of the Tunnel Details page.
+
+5. ssh into the router and execute this script with these steps.
+    
+        ssh root@192.168.1.1     # use the address of your router
+        cd /tmp
+        cat > tunnel.sh 
+        [paste in the contents of this file, then hit ^D]
+        [edit the script to match your tunnelbroker values]
+        sh tunnel.sh
+        [Restart your router. This seems to make a difference.]
+  
+Presto! Your tunnel is up! 
+Your computer should get a global IPv6 address, and should be able to communicate directly with IPv6 devices on the Internet. 
+To test it, try: `ping6 ivp6.google.com`
+
